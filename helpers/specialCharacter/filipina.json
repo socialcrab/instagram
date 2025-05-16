@@ -1,0 +1,23 @@
+[	
+	{"unicode":"U+1700","character":"ᜀ","utf8":"e1 9c 80","name":"TAGALOG LETTER A"},
+	{"unicode":"U+1701","character":"ᜁ","utf8":"e1 9c 81","name":"TAGALOG LETTER I"},
+	{"unicode":"U+1702","character":"ᜂ","utf8":"e1 9c 82","name":"TAGALOG LETTER U"},
+	{"unicode":"U+1703","character":"ᜃ","utf8":"e1 9c 83","name":"TAGALOG LETTER KA"},
+	{"unicode":"U+1704","character":"ᜄ","utf8":"e1 9c 84","name":"TAGALOG LETTER GA"},
+	{"unicode":"U+1705","character":"ᜅ","utf8":"e1 9c 85","name":"TAGALOG LETTER NGA"},
+	{"unicode":"U+1706","character":"ᜆ","utf8":"e1 9c 86","name":"TAGALOG LETTER TA"},
+	{"unicode":"U+1707","character":"ᜇ","utf8":"e1 9c 87","name":"TAGALOG LETTER DA"},
+	{"unicode":"U+1708","character":"ᜈ","utf8":"e1 9c 88","name":"TAGALOG LETTER NA"},
+	{"unicode":"U+1709","character":"ᜉ","utf8":"e1 9c 89","name":"TAGALOG LETTER PA"},
+	{"unicode":"U+170A","character":"ᜊ","utf8":"e1 9c 8a","name":"TAGALOG LETTER BA"},
+	{"unicode":"U+170B","character":"ᜋ","utf8":"e1 9c 8b","name":"TAGALOG LETTER MA"},
+	{"unicode":"U+170C","character":"ᜌ","utf8":"e1 9c 8c","name":"TAGALOG LETTER YA"},
+	{"unicode":"U+170D","character":"ᜍ","utf8":"e1 9c 8d","name":""},
+	{"unicode":"U+170E","character":"ᜎ","utf8":"e1 9c 8e","name":"TAGALOG LETTER LA"},
+	{"unicode":"U+170F","character":"ᜏ","utf8":"e1 9c 8f","name":"TAGALOG LETTER WA"},
+	{"unicode":"U+1710","character":"ᜐ","utf8":"e1 9c 90","name":"TAGALOG LETTER SA"},
+	{"unicode":"U+1711","character":"ᜑ","utf8":"e1 9c 91","name":"TAGALOG LETTER HA"},
+	{"unicode":"U+1712","character":"ᜒ","utf8":"e1 9c 92","name":"TAGALOG VOWEL SIGN I"},
+	{"unicode":"U+1713","character":"ᜓ","utf8":"e1 9c 93","name":"TAGALOG VOWEL SIGN U"},
+	{"unicode":"U+1714","character":"᜔","utf8":"e1 9c 94","name":"TAGALOG SIGN VIRAMA"}
+]

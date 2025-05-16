@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Crawler Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200;300;400;500;600;700;800;900&family=Noto+Sans+Mono:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              inconsolata: ['Inconsolata', 'monospace'],
+            },
+          },
+        },
+      };
+    </script>
+
+    <script src="//unpkg.com/alpinejs" defer></script>
+  </head>
+  <body class="bg-zinc-400 font-inconsolata">
+    <div x-data="app" class="mx-8 lg:mx-auto my-8 max-w-screen-lg">
+      <div class="relative">
+        <div class="relative w-fit bg-white border shadow p-4 rounded-xl z-20">
+          <h3 class="text-lg font-semibold">Recent Full Query</h3>
+          <p x-text="`These queries need to re-crawl manually!`"></p>
+        </div>
+        <div class="bg-white border shadow p-4 pt-8 rounded-xl -mt-4 z-10">
+          <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="pr-2 mr-2 border-r flex">
+                <form action="/crawl/upload" method="post" enctype="multipart/form-data">
+                  <label class="bg-white px-2 py-1" for="hashtag">Input Hashtag</label>
+                  <input type="text" name="hashtag" class="bg-white border px-2 py-1">
+                  <input type="file" name="excelFile" accept=".xlsx, .xls" class="bg-white border px-2 py-1">
+                  <input type="submit" value="Unggah" class="bg-violet-500 px-2 py-1 rounded-r-xl text-white font-bold uppercase text-sm tracking-widest hover:bg-violet-400">
+                </form>
+              </div>
+            </div> 
+          </div>
+          <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="pr-2 mr-2 border-r flex">
+                <select name="mode" x-model="mode" class="bg-white border rounded-l-xl px-2 py-1">
+                  <option value="profile">@</option>
+                  <option value="hashtag">#</option>
+                </select>
+                <input type="text" x-model="query" class="bg-white border px-2 py-1" placeholder="crawl manual" />
+                <button
+                  type="button"
+                  class="bg-violet-500 px-2 py-1 rounded-r-xl text-white font-bold uppercase text-sm tracking-widest hover:bg-violet-400"
+                  x-on:click="crawl(mode, query)"
+                >
+                  Crawl
+                </button>
+              </div>
+              <div class="flex">
+                <input type="date" x-model="startDate" class="bg-white border rounded-l-xl px-2 py-1" />
+                <input type="date" x-model="endDate" class="bg-white border px-2 py-1" />
+                <button
+                  type="button"
+                  class="bg-violet-500 px-2 py-1 rounded-r-xl text-white font-bold uppercase text-sm tracking-widest hover:bg-violet-400"
+                  x-on:click="applyFilter()"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+            <div>
+              <template x-if="fetching">
+                <span x-text="'fetching...'" class="animate-pulse"></span>
+              </template>
+              <template x-if="!fetching">
+                <span x-text="`${reports.length} reports`"></span>
+              </template>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="text-sm w-full">
+              <thead>
+                <tr>
+                  <th class="px-2 py-1 border">#</th>
+                  <th class="px-2 py-1 border">Report</th>
+                  <th class="px-2 py-1 border">Query</th>
+                  <th class="px-2 py-1 border">Post</th>
+                  <th class="px-2 py-1 border">Updated At</th>
+                  <th class="px-2 py-1 border">User</th>
+                  <th class="px-2 py-1 border">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(report, i) in reports">
+                  <tr>
+                    <td class="px-2 py-1 border" x-text="i + 1"></td>
+                    <td
+                      x-bind:class="`px-2 py-1 border whitespace-nowrap ${report.report === 'profile' ? 'text-sky-500' : 'text-emerald-500'}`"
+                      x-text="report.report"
+                    ></td>
+                    <td class="px-2 py-1 border" x-text="report.query"></td>
+                    <td class="px-2 py-1 border text-right whitespace-nowrap">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <span
+                            x-bind:class="`${!!report.hasMore ? 'text-rose-500' : 'text-emerald-500'} cursor-help`"
+                            x-bind:title="!!report.hasMore ? 'possibly has more post' : 'fully crawled'"
+                            >●</span
+                          >
+                          <span
+                            x-bind:class="`${!!report.captchaExists ? 'text-rose-500' : 'text-emerald-500'} cursor-help`"
+                            x-bind:title="!!report.captchaExists ? 'captcha exists!' : 'safe'"
+                            >●</span
+                          >
+                          <span
+                            class="text-xs text-zinc-400 cursor-help"
+                            x-text="report.report === 'profile' ? `<${Math.ceil((report.totalPost / report.estimatedPost) * 10) * 10}%` : ''"
+                            x-bind:title="(report.totalPost / report.estimatedPost * 100).toFixed(2)"
+                          ></span>
+                        </div>
+                        <div>
+                          <span x-text="`${report.totalPost} / ${report.estimatedPost}`"></span>
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      class="px-2 py-1 border text-center whitespace-nowrap"
+                      x-text="dayjs(report.updatedAt).format('YYYY-MM-DD HH:mm:ss')"
+                    ></td>
+                    <td
+                      class="px-2 py-1 border text-center whitespace-nowrap cursor-help"
+                      x-text="`${report.users.length} users(s)`"
+                      x-bind:title="report.users.join('; ')"
+                    ></td>
+                    <td class="px-2 py-1 border text-center">
+                      <button
+                        type="button"
+                        x-data="{loading: false}"
+                        x-on:click="loading = true; crawl(report.report, report.query).then(() => loading = false);"
+                        class="bg-amber-500 disabled:bg-amber-200 px-2 py-1 rounded-xl hover:bg-amber-400 whitespace-nowrap text-white"
+                        x-bind:disabled="loading || crawling"
+                      >
+                        <span x-text="loading ? 'crawling' : 're-crawl'"></span>
+                      </button>
+                      <button
+                        x-on:click="markDone(report.report, report.query)"
+                        class="bg-emerald-500 disabled:bg-emerald-200 px-2 py-1 rounded-xl hover:bg-emerald-400 whitespace-nowrap text-white"
+                        x-bind:disabled="crawling"
+                      >
+                        <span>mark-done</span>
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('alpine:init', () => {
+        const url = new URL(location.href);
+        const startDate = +(url.searchParams.get('startDate') || dayjs().subtract(1, 'week').startOf('day'));
+        const endDate = +(url.searchParams.get('endDate') || dayjs().endOf('day'));
+
+        Alpine.data('app', () => ({
+          startDate: dayjs(startDate).format('YYYY-MM-DD'),
+          endDate: dayjs(endDate).format('YYYY-MM-DD'),
+
+          reports: [],
+          fetching: false,
+
+          mode: 'profile',
+          query: '',
+          crawling: false,
+
+          async fetchReports() {
+            this.fetching = true;
+            const response = await fetch(`/missing-post-reports?startDate=${this.startDate}&endDate=${this.endDate}`);
+            this.reports = await response.json();
+            this.fetching = false;
+          },
+
+          async applyFilter() {
+            const url = new URL(location.href);
+            url.searchParams.set('startDate', dayjs(this.startDate).startOf('day').valueOf());
+            url.searchParams.set('endDate', dayjs(this.endDate).endOf('day').valueOf());
+
+            location.href = url.toString();
+          },
+
+          async crawl(mode, query) {
+            console.log(mode, query);
+            this.crawling = true;
+            try {
+              if (mode === 'profile') {
+                await fetch('/crawl/profile/' + query, { method: 'post' });
+              } else if (mode === 'hashtag') {
+                await fetch('/crawl/hashtag/' + query, { method: 'post' });
+              }
+
+              // Tampilkan popup berhasil
+              this.showSuccessPopup(mode, query);
+
+              // Fetch reports setelah popup berhasil ditampilkan
+              await this.fetchReports();
+            } catch (error) {
+              console.error('Error during crawling:', error);
+            } finally {
+              this.crawling = false;
+            }
+          },
+
+          showSuccessPopup(mode, query) {
+            // Menggunakan alert bawaan browser
+            alert(`Crawling ${mode} ${query} berhasil dilakukan!`);
+          },
+
+          async markDone(mode, query) {
+            this.crawling = true;
+            console.log(mode, query);
+            await fetch('/mark-report-as-done', {
+              headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+              body: JSON.stringify({ mode, query }),
+              method: 'post',
+            });
+
+            await this.fetchReports();
+            this.crawling = false;
+          },
+
+          async init() {
+            await this.fetchReports();
+          },
+        }));
+      });
+    </script>
+  </body>
+</html>

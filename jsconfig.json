@@ -1,0 +1,7 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+	},
+	"include": ["./**/*.d.ts", "./**/*.js"],
+	"exclude": ["node_modules", "**/node_modules", "tmp"]
+}

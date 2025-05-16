@@ -1,0 +1,1 @@
+This Folder Just For Temporary Image
